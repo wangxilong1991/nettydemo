@@ -17,11 +17,11 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 
 public class Server {
 	public static ChannelGroup clients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
-	
+
 	public static void main(String[] args) throws Exception {
 		EventLoopGroup bossGroup = new NioEventLoopGroup(1);
 		EventLoopGroup workerGroup = new NioEventLoopGroup(2);
-		
+
 		try {
 			ServerBootstrap b = new ServerBootstrap();
 			ChannelFuture f = b.group(bossGroup, workerGroup)
@@ -35,20 +35,20 @@ public class Server {
 				})
 				.bind(8888)
 				.sync();
-			
+
 			System.out.println("server started!");
-			
+
 			f.channel().closeFuture().sync(); //close()->ChannelFuture
 		} finally {
 			workerGroup.shutdownGracefully();
 			bossGroup.shutdownGracefully();
 		}
-		
+
 	}
 }
 
 class ServerChildHandler extends ChannelInboundHandlerAdapter { //SimpleChannleInboundHandler Codec
-	
+
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
 		Server.clients.add(ctx.channel());
@@ -56,17 +56,17 @@ class ServerChildHandler extends ChannelInboundHandlerAdapter { //SimpleChannleI
 
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-		
+
 		ByteBuf buf = null;
 		try {
 			buf = (ByteBuf)msg;
-			
+
 			byte[] bytes = new byte[buf.readableBytes()];
 			buf.getBytes(buf.readerIndex(), bytes);
 			System.out.println(new String(bytes));
-			
+
 			Server.clients.writeAndFlush(msg);
-			
+
 			//System.out.println(buf);
 			//System.out.println(buf.refCnt());
 		} finally {
@@ -80,8 +80,8 @@ class ServerChildHandler extends ChannelInboundHandlerAdapter { //SimpleChannleI
 		cause.printStackTrace();
 		ctx.close();
 	}
-	
-	
+
+
 }
 
 

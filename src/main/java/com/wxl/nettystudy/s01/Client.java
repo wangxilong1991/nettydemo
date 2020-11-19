@@ -15,20 +15,19 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.ReferenceCountUtil;
 
 public class Client {
-	public static void main(String[] args) throws Exception {
-		//�̳߳�
+	public void start() throws InterruptedException {
 		EventLoopGroup group = new NioEventLoopGroup(1);
-		
+
 		Bootstrap b = new Bootstrap();
-		
-		try {			
-			ChannelFuture f = 
+
+		try {
+			ChannelFuture f =
 					b.group(group)
-				.channel(NioSocketChannel.class)
-				.handler(new ClientChannelInitializer())
-				.connect("localhost", 8888)
-				;
-						
+							.channel(NioSocketChannel.class)
+							.handler(new ClientChannelInitializer())
+							.connect("localhost", 8888)
+					;
+
 			f.addListener(new ChannelFutureListener() {
 				@Override
 				public void operationComplete(ChannelFuture future) throws Exception {
@@ -39,16 +38,20 @@ public class Client {
 					}
 				}
 			});
-			
+
 			f.sync();
-			
+
 			System.out.println("...");
-			
-			
+
+
 			f.channel().closeFuture().sync();
 		} finally {
 			group.shutdownGracefully();
 		}
+	}
+	public static void main(String[] args) throws Exception {
+		Client client = new Client();
+		client.start();
 	}
 }
 
@@ -81,7 +84,7 @@ class ClientHandler extends ChannelInboundHandlerAdapter {
 
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
-		ByteBuf buf = Unpooled.copiedBuffer("hello".getBytes());
+		ByteBuf buf = Unpooled.copiedBuffer(("hello"+Thread.currentThread().getName()).getBytes());
 		ctx.writeAndFlush(buf);
 	}
 	
